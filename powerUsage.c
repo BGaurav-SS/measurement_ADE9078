@@ -15,7 +15,7 @@
 //  xWATTOS = Phase X total active power offset correction for xWATT calculation.
 
 
-struct initialGains {
+struct gains {
   uint8_t avGain;
   uint8_t bvGain;
   uint8_t cvGain;
@@ -33,7 +33,7 @@ struct initialGains {
 }; 
 
 
-int initialize (void){
+int resetDevice (void){
     //Reset ADE9078
     digitalWrite(RESET_PIN, LOW);
     delay(5);
@@ -48,22 +48,10 @@ int initialize (void){
 }
 
 
+//Quickstart function implements the 'QUICKSTART-SECTION' described in the datasheet.
+int quickStart(){
 
-int main(int argc, char* argv[]){
-
-    uint32_t data;
-
-    if(argc <= 1){
-        printf("Too few args, try %s /dev/spidev0.0\n",argv[0]);
-        return -1;
-    }
-
-    wiringPiSetup();
-    pinMode(RESET_PIN, OUTPUT);
-    pinMode(IRQ1B_PIN, INPUT);
-
-
-    if (initialize() != 0){
+    if (resetDevice != 0){
         printf("Error initializing the device.\n");
         return -1;
     }
@@ -79,6 +67,7 @@ int main(int argc, char* argv[]){
     printf("Success: SPI port opened.\n\n");
     delay(1000);
 
+
     // Turning the IRQ1B LED off.
     //The IRQ1B LED is lit when the device completes reset.
     if ((writeByte (ADDR_STATUS1, (1<<16))) < 0){
@@ -87,7 +76,7 @@ int main(int argc, char* argv[]){
 
     //Initialize the gain values.
     //All gains are initialized to be zero.
-    initialGains gains = {0};
+    gains initialGains = {0};
 
     //Configure the fundamental frequency to be 50Hz.
     //Set ACCMODE Bit-8 = 0
@@ -96,6 +85,7 @@ int main(int argc, char* argv[]){
     }
 
     //Write VLEVEL = 0x117514
+    //Recommended by the datasheet.
     if((writeByte (ADDR_VLEVEL, 0x117514) < 0)){
         return -1;
     }
@@ -113,28 +103,47 @@ int main(int argc, char* argv[]){
 
 
     //Write 1 to run register.
+    if((writeByte (ADDR_RUN, (1 << 0))) < 0){
+        return -1;
+    }
     
     //Write 1 to EP_CFG register.
+    if((writeByte (ADDR_EP_CFG, (1 << 0))) < 0){
+        return -1;
+    }
 
+    return 0;
+}
 
+int main(int argc, char* argv[]){
 
+    uint32_t data;
+
+    if(argc <= 1){
+        printf("Too few args, try %s /dev/spidev0.0\n",argv[0]);
+        return -1;
+    }
+
+    wiringPiSetup();
+    pinMode(RESET_PIN, OUTPUT);
+    pinMode(IRQ1B_PIN, INPUT);
+
+    if (quickStart() < 0){
+        printf("Error: Quickstart returned -1.\n");
+        return -1;
+    }
 
 
     while (1){
-
-        // printf ("Writing data\n\n");
-        if((writeByte (ADDR_VLEVEL, 0x117514) < 0)){
-            return -1;
-        }
-        // delay(10);
-
-
-        printf ("Receiving data\n");
-        if ((readByte(ADDR_VLEVEL, &data)) < 0){
+ 
+        //printf ("Receiving data\n");
+        if ((readByte(ADDR_AVRMS, &data)) < 0){
             return -1 ;
         }
-        printf("RECEIVED: %.2X\n\n",data);
-        // delay(10);
+        printf("Phase A RMS voltage (register reading): %.2X\n\n",data);
+        data /=75000; 
+        printf("Phase A RMS voltage: %i\n\n",data);
+        delay(100);
     }
     return 0;
 }
