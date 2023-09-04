@@ -57,17 +57,6 @@ int quickStart(){
     }
     printf("Success: Device Initialization.\n\n");
 
-
-    // open and configure SPI channel. (/dev/spidev0.0 for example)
-    printf("Opening SPI port...\n");
-    if(spi_open(argv[1]) < 0){
-        printf("SPI_open failed\n");
-        return -1;
-    }
-    printf("Success: SPI port opened.\n\n");
-    delay(1000);
-
-
     // Turning the IRQ1B LED off.
     //The IRQ1B LED is lit when the device completes reset.
     if ((writeByte (ADDR_STATUS1, (1<<16))) < 0){
@@ -124,6 +113,15 @@ int main(int argc, char* argv[]){
         return -1;
     }
 
+    // open and configure SPI channel. (/dev/spidev0.0 for example)
+    printf("Opening SPI port...\n");
+    if(spi_open(argv[1]) < 0){
+        printf("SPI_open failed\n");
+        return -1;
+    }
+    printf("Success: SPI port opened.\n\n");
+    delay(100);
+
     wiringPiSetup();
     pinMode(RESET_PIN, OUTPUT);
     pinMode(IRQ1B_PIN, INPUT);
@@ -141,9 +139,20 @@ int main(int argc, char* argv[]){
             return -1 ;
         }
         printf("Phase A RMS voltage (register reading): %.2X\n\n",data);
-        data /=75000; 
+        data /=75000;
+        //75000 because 
         printf("Phase A RMS voltage: %i\n\n",data);
         delay(100);
+
+
+        if ((readByte(ADDR_AWATT, &data)) < 0){
+            return -1 ;
+        }
+        printf("Phase A Power (register reading): %.2X\n\n",data);
+        data /=8330;
+        printf("Phase A Power: %i W\n\n",data);
+        delay(100);
+
     }
     return 0;
 }
