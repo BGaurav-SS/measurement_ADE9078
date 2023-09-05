@@ -2,7 +2,8 @@
 This repo includes the code for measuring electrical parameters with ADE9078.
 
 ----------------------------------------------------------------------------------------------------------------------------------------
---------------------------------Mapping the power register reading to power usage (Watts).----------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------
+                                    Mapping the power register reading to power usage (Watts).
 	
 The IC allows full-scale voltage of 0.707Vrms in its pins. So, the maximum full-scale voltage is 0.707V. The external circuit        should make sure that the voltage is within this limit.
 
