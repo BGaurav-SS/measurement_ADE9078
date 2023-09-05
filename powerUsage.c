@@ -140,7 +140,6 @@ int main(int argc, char* argv[]){
         }
         printf("Phase A RMS voltage (register reading): %.2X\n\n",data);
         data /=75000;
-        //75000 because 
         printf("Phase A RMS voltage: %i\n\n",data);
         delay(100);
 
