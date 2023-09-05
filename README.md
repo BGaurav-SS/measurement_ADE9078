@@ -20,5 +20,6 @@ To convert register reading into watt, divide by 8330.
 Watts = [Register Reading]/8330.
 
 The ADE9078 has an example in quick start section. That example’s result could not be used because the CT transformer we are using has different specifications. 
+
 ----------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------------
